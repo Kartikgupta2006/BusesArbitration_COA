@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#10172b">
+    <title>Kartik Lab | Bus Arbitration Simulator</title>
+
+    <style>
+        :root {
+            --bg: #f4f6fb;
+            --surface: #ffffff;
+            --surface-soft: #f8f9fd;
+            --ink: #172033;
+            --muted: #78839a;
+            --line: #e5e9f2;
+            --navy: #10172b;
+            --navy-soft: #1c2744;
+            --blue: #5266f5;
+            --blue-dark: #394bd2;
+            --blue-pale: #eef0ff;
+            --green: #0a9876;
+            --green-pale: #eaf8f3;
+            --orange: #e99a36;
+            --red: #d94d5c;
+            --shadow: 0 12px 34px rgba(28, 42, 76, .07);
+            --radius: 16px;
+        }
+
+        * { box-sizing: border-box; }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 24px;
+        }
+
+        body {
+            margin: 0;
+            color: var(--ink);
+            background: var(--bg);
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            line-height: 1.5;
+        }
+
+        a { color: inherit; }
+
+        button, select { font: inherit; }
+
+        .sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            z-index: 10;
+            display: flex;
+            width: 248px;
+            flex-direction: column;
+            padding: 25px 17px;
+            color: #dbe1f5;
+            background: var(--navy);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            margin: 0 9px 35px;
+            color: #fff;
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: -.3px;
+            text-decoration: none;
+        }
+
+        .brand-mark {
+            display: grid;
+            width: 39px;
+            height: 39px;
+            place-items: center;
+            border-radius: 13px;
+            color: white;
+            background: linear-gradient(145deg, #8491ff, #4859ea);
+            box-shadow: 0 7px 18px #5266f550;
+            font-size: 21px;
+        }
+
+        .brand-accent { color: #9ca8ff; }
+
+        .nav-label {
+            margin: 0 12px 10px;
+            color: #8290b2;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+        }
+
+        .nav-list {
+            display: grid;
+            gap: 5px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 11px 12px;
+            border-radius: 10px;
+            color: #aeb8d3;
+            font-size: 13px;
+            text-decoration: none;
+            transition: background .18s, color .18s;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: #fff;
+            background: #26314f;
+        }
+
+        .nav-icon {
+            display: inline-grid;
+            width: 19px;
+            place-items: center;
+            font-size: 16px;
+        }
+
+        .sidebar-spacer { flex: 1; }
+
+        .sidebar-project {
+            padding: 15px;
+            border: 1px solid #303b59;
+            border-radius: 13px;
+            color: #b9c2dc;
+            background: #171f38;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .sidebar-project strong {
+            display: block;
+            margin-bottom: 4px;
+            color: white;
+            font-size: 12px;
+        }
+
+        .sidebar-footer {
+            padding: 14px 8px 0;
+            color: #7f8bab;
+            font-size: 10px;
+        }
+
+        .main {
+            max-width: 1600px;
+            margin-left: 248px;
+            padding: 27px 38px 48px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .crumb {
+            margin-bottom: 5px;
+            color: var(--blue);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(26px, 3vw, 35px);
+            letter-spacing: -1.2px;
+            line-height: 1.15;
+        }
+
+        .page-subtitle {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .server-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 12px;
+            border: 1px solid #ccecdf;
+            border-radius: 999px;
+            color: #08785d;
+            background: #f0fbf6;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #0ab383;
+            box-shadow: 0 0 0 4px #0ab38320;
+        }
+
+        .server-status.offline {
+            border-color: #f2d6da;
+            color: #a33845;
+            background: #fff5f6;
+        }
+
+        .server-status.offline .status-dot {
+            background: var(--red);
+            box-shadow: 0 0 0 4px #d94d5c20;
+        }
+
+        .refresh-button {
+            padding: 9px 12px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            color: var(--ink);
+            background: white;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .refresh-button:hover { background: var(--surface-soft); }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 17px;
+            padding: 25px 27px;
+            border-radius: 18px;
+            color: white;
+            background:
+                    radial-gradient(circle at 87% 20%, #7c89ff5c 0 2px, transparent 3px),
+                    radial-gradient(circle at 90% 70%, #7c89ff4c 0 3px, transparent 4px),
+                    linear-gradient(110deg, #253765, #4b59cc 68%, #6068e6);
+            box-shadow: 0 15px 34px #394bd226;
+        }
+
+        .hero::after {
+            position: absolute;
+            top: -90px;
+            right: -45px;
+            width: 260px;
+            height: 260px;
+            border: 1px solid #ffffff25;
+            border-radius: 50%;
+            content: "";
+        }
+
+        .hero::before {
+            position: absolute;
+            top: -55px;
+            right: 5px;
+            width: 180px;
+            height: 180px;
+            border: 1px solid #ffffff25;
+            border-radius: 50%;
+            content: "";
+        }
+
+        .hero-content { position: relative; z-index: 1; max-width: 720px; }
+
+        .hero-kicker {
+            margin-bottom: 7px;
+            color: #d7ddff;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .hero h2 {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: -.5px;
+        }
+
+        .hero p {
+            max-width: 650px;
+            margin: 8px 0 0;
+            color: #e0e4ff;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 17px;
+        }
+
+        .stat-card {
+            padding: 17px 18px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .stat-icon {
+            display: grid;
+            width: 34px;
+            height: 34px;
+            place-items: center;
+            border-radius: 11px;
+            background: var(--blue-pale);
+            font-size: 16px;
+        }
+
+        .stat-number {
+            margin-top: 12px;
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: -.6px;
+        }
+
+        .stat-note {
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.45fr) minmax(290px, .85fr);
+            gap: 17px;
+            align-items: start;
+        }
+
+        .panel {
+            margin-bottom: 17px;
+            padding: 20px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--surface);
+            box-shadow: var(--shadow);
+            scroll-margin-top: 22px;
+        }
+
+        .panel-heading {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .panel-title {
+            margin: 0;
+            font-size: 15px;
+            letter-spacing: -.2px;
+        }
+
+        .panel-description {
+            margin: 5px 0 0;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .small-label {
+            display: block;
+            margin-top: 15px;
+            color: #5f6b82;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .mode-select {
+            width: 100%;
+            margin: 7px 0 9px;
+            padding: 11px 12px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            color: var(--ink);
+            background: white;
+            font-size: 12px;
+            outline-color: var(--blue);
+        }
+
+        .button {
+            border: 0;
+            border-radius: 9px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform .15s, filter .15s;
+        }
+
+        .button:hover { transform: translateY(-1px); filter: brightness(.96); }
+
+        .button-primary {
+            color: white;
+            background: var(--blue);
+        }
+
+        .button-primary:hover { background: var(--blue-dark); }
+
+        .apply-button {
+            width: 100%;
+            padding: 11px;
+        }
+
+        .device-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 9px;
+            margin-top: 16px;
+        }
+
+        .device-button {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 11px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            color: var(--ink);
+            background: #fafbff;
+            text-align: left;
+        }
+
+        .device-button:hover {
+            border-color: #cfd5ff;
+            background: #f2f3ff;
+        }
+
+        .device-button-icon {
+            display: grid;
+            width: 32px;
+            height: 32px;
+            flex: 0 0 32px;
+            place-items: center;
+            border-radius: 9px;
+            background: white;
+            font-size: 16px;
+        }
+
+        .device-button-name { font-size: 11px; font-weight: 800; }
+
+        .device-button-priority {
+            display: block;
+            margin-top: 2px;
+            color: var(--muted);
+            font-size: 9px;
+            font-weight: 500;
+        }
+
+        .control-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .grant-button {
+            flex: 1;
+            padding: 12px;
+            color: white;
+            background: var(--green);
+        }
+
+        .grant-button:hover { background: #087b61; }
+
+        .reset-button {
+            padding: 12px 14px;
+            color: #a13d48;
+            background: #fff0f2;
+        }
+
+        .reset-button:hover { color: white; background: var(--red); }
+
+        .message {
+            min-height: 18px;
+            margin: 12px 0 0;
+            color: var(--blue-dark);
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .message.error { color: var(--red); }
+
+        .bus-diagram {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) auto 1.2fr;
+            align-items: center;
+            gap: 7px;
+            margin-top: 14px;
+            padding: 13px;
+            border: 1px dashed #dce1ee;
+            border-radius: 12px;
+            background: #fbfcff;
+        }
+
+        .diagram-device,
+        .diagram-bus {
+            padding: 9px 5px;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .diagram-device { color: #48516a; background: #edf0f8; }
+        .diagram-bus { color: white; background: #303d70; }
+        .diagram-arrow { color: var(--blue); font-size: 18px; text-align: center; }
+
+        .queue-list {
+            display: grid;
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .queue-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fcfcfe;
+        }
+
+        .queue-number {
+            display: grid;
+            width: 27px;
+            height: 27px;
+            flex: 0 0 27px;
+            place-items: center;
+            border-radius: 8px;
+            color: var(--blue-dark);
+            background: var(--blue-pale);
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .queue-device { font-size: 11px; font-weight: 800; }
+        .queue-time { margin-top: 2px; color: var(--muted); font-size: 9px; }
+
+        .empty-state {
+            padding: 17px 12px;
+            border: 1px dashed #d9dfeb;
+            border-radius: 10px;
+            color: var(--muted);
+            background: #fcfcfe;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        .device-row {
+            display: grid;
+            grid-template-columns: minmax(75px, 1fr) 90px auto;
+            align-items: center;
+            gap: 9px;
+            margin: 13px 0;
+            font-size: 10px;
+        }
+
+        .device-name { font-weight: 800; }
+
+        .priority-track {
+            height: 7px;
+            overflow: hidden;
+            border-radius: 99px;
+            background: #edf0f5;
+        }
+
+        .priority-fill {
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #95a0ff, var(--blue));
+        }
+
+        .priority-value {
+            min-width: 49px;
+            color: var(--muted);
+            font-size: 9px;
+            text-align: right;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 7px;
+            border-radius: 99px;
+            color: #4c5acb;
+            background: var(--blue-pale);
+            font-size: 9px;
+            font-weight: 800;
+        }
+
+        .section-intro {
+            margin: 0 0 14px;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.7;
+        }
+
+        .history-tools {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .history-count {
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        .table-wrap { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 9px;
+            letter-spacing: .7px;
+            text-align: left;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 11px 8px;
+            border-bottom: 1px solid #f0f2f6;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+
+        tbody tr:hover { background: #fbfcff; }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .comparison-card {
+            padding: 13px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fcfcfe;
+        }
+
+        .comparison-card h3 {
+            margin: 0 0 7px;
+            font-size: 11px;
+        }
+
+        .comparison-card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 9px;
+            line-height: 1.65;
+        }
+
+        .comparison-card .tag { margin-bottom: 8px; }
+
+        .info-list {
+            display: grid;
+            gap: 9px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .info-list li {
+            display: flex;
+            gap: 9px;
+            color: #59657b;
+            font-size: 10px;
+            line-height: 1.6;
+        }
+
+        .check {
+            color: var(--green);
+            font-weight: 900;
+        }
+
+        .faq-item {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .faq-item:last-child { border-bottom: 0; }
+
+        .faq-item summary {
+            color: var(--ink);
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .faq-item p {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 10px;
+            line-height: 1.7;
+        }
+
+        .project-footer {
+            padding: 14px 0 2px;
+            color: var(--muted);
+            font-size: 9px;
+            text-align: center;
+        }
+
+        @media (max-width: 1120px) {
+            .sidebar { width: 215px; }
+            .main { margin-left: 215px; padding-right: 24px; padding-left: 24px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .layout-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 680px) {
+            .sidebar { display: none; }
+            .main { margin: 0; padding: 20px 14px 35px; }
+            .topbar { align-items: flex-start; }
+            .top-actions { flex-direction: column; align-items: flex-end; }
+            .hero { padding: 21px; }
+            .stats-grid { gap: 9px; }
+            .stat-card { padding: 13px; }
+            .stat-number { font-size: 21px; }
+            .panel { padding: 16px; }
+            .comparison-grid { grid-template-columns: 1fr; }
+            .bus-diagram { grid-template-columns: repeat(2, 1fr); }
+            .diagram-arrow { display: none; }
+            .diagram-bus { grid-column: span 2; }
+        }
+
+        @media (max-width: 390px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .device-buttons { grid-template-columns: 1fr; }
+            .server-status { font-size: 9px; }
+            .refresh-button { font-size: 9px; }
+        }
+    </style>
+</head>
+
+<body>
+<aside class="sidebar">
+    <a class="brand" href="#top">
+        <span class="brand-mark">⇄</span>
+        <span>Arbiter<span class="brand-accent">Lab</span></span>
+    </a>
+
+    <p class="nav-label">Workspace</p>
+    <nav class="nav-list" aria-label="Main navigation">
+        <a class="nav-item active" href="#simulator">
+            <span class="nav-icon">▦</span> Simulator
+        </a>
+        <a class="nav-item" href="#history-section">
+            <span class="nav-icon">◷</span> Grant history
+        </a>
+        <a class="nav-item" href="#devices-section">
+            <span class="nav-icon">⌘</span> Device overview
+        </a>
+        <a class="nav-item" href="#algorithms-section">
+            <span class="nav-icon">⟳</span> Algorithms
+        </a>
+        <a class="nav-item" href="#about-section">
+            <span class="nav-icon">ⓘ</span> About project
+        </a>
+        <a class="nav-item" href="#faq-section">
+            <span class="nav-icon">?</span> FAQ
+        </a>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-project">
+        <strong>MCA Computer Architecture Project Made by Kartik Gupta</strong>
+        Interactive simulator for learning how multiple devices request and share a system bus.
+    </div>
+    <div class="sidebar-footer">Bus Arbitration Lab · Educational demo</div>
+</aside>
+
+<main class="main" id="top">
+    <header class="topbar">
+        <div>
+            <div class="crumb">Computer organization &amp; architecture</div>
+            <h1>Bus Arbitration Lab</h1>
+            <p class="page-subtitle">Explore how an arbiter manages access to a shared bus.</p>
+        </div>
+
+        <div class="top-actions">
+            <div class="server-status" id="serverStatus">
+                <span class="status-dot"></span>
+                <span id="serverStatusText">Connecting...</span>
+            </div>
+            <button class="refresh-button" onclick="loadStatus()">↻ Refresh</button>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-kicker">Interactive learning environment</div>
+            <h2>Understand bus access, one grant at a time.</h2>
+            <p>
+                Submit access requests from CPU, DMA, Disk, and Network devices. Select an
+                arbitration strategy and watch the Java backend decide which device gets
+                control of the shared bus.
+            </p>
+        </div>
+    </section>
+
+    <section class="stats-grid" aria-label="Simulator statistics">
+        <article class="stat-card">
+            <div class="stat-heading">
+                <span>Current bus owner</span>
+                <span class="stat-icon">🔌</span>
+            </div>
+            <div class="stat-number" id="owner">—</div>
+            <div class="stat-note">Device currently using the bus</div>
+        </article>
+
+        <article class="stat-card">
+            <div class="stat-heading">
+                <span>Total requests</span>
+                <span class="stat-icon">📨</span>
+            </div>
+            <div class="stat-number" id="requestsCount">0</div>
+            <div class="stat-note">Requests submitted this session</div>
+        </article>
+
+        <article class="stat-card">
+            <div class="stat-heading">
+                <span>Completed grants</span>
+                <span class="stat-icon">✅</span>
+            </div>
+            <div class="stat-number" id="grantsCount">0</div>
+            <div class="stat-note">Successful bus allocations</div>
+        </article>
+
+        <article class="stat-card">
+            <div class="stat-heading">
+                <span>Waiting devices</span>
+                <span class="stat-icon">⏳</span>
+            </div>
+            <div class="stat-number" id="waitingCount">0</div>
+            <div class="stat-note">Requests still in the queue</div>
+        </article>
+    </section>
+
+    <div class="layout-grid">
+        <div>
+            <section class="panel" id="simulator">
+                <div class="panel-heading">
+                    <div>
+                        <h2 class="panel-title">Arbitration simulator</h2>
+                        <p class="panel-description">
+                            Choose a method, send device requests, and grant bus access.
+                        </p>
+                    </div>
+                    <span class="tag" id="currentModeTag">FIFO</span>
+                </div>
+
+                <label class="small-label" for="mode">Arbitration method</label>
+                <select class="mode-select" id="mode">
+                    <option value="FIFO">FIFO — First request gets access first</option>
+                    <option value="PRIORITY">Priority — Highest priority gets access</option>
+                    <option value="ROUND_ROBIN">Round Robin — Devices take turns</option>
+                </select>
+                <button class="button button-primary apply-button" onclick="changeMode()">
+                    Apply arbitration method
+                </button>
+
+                <div class="device-buttons" id="deviceButtons"></div>
+
+                <div class="control-actions">
+                    <button class="button grant-button" onclick="grantBus()">
+                        Grant bus to next device →
+                    </button>
+                    <button class="button reset-button" onclick="resetSimulator()">Reset</button>
+                </div>
+
+                <p class="message" id="message" aria-live="polite"></p>
+
+                <div class="bus-diagram" aria-label="Devices connect to an arbiter and shared bus">
+                    <div class="diagram-device">CPU</div>
+                    <div class="diagram-device">DMA</div>
+                    <div class="diagram-device">Disk</div>
+                    <div class="diagram-device">Network</div>
+                    <div class="diagram-arrow">→</div>
+                    <div class="diagram-bus">ARBITER → SHARED BUS</div>
+                </div>
+            </section>
+
+            <section class="panel" id="history-section">
+                <div class="panel-heading">
+                    <div>
+                        <h2 class="panel-title">Grant history</h2>
+                        <p class="panel-description">
+                            Each successful grant is recorded here for review.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="history-tools">
+                    <span class="history-count" id="historyCount">0 grants recorded</span>
+                    <span class="tag">Newest first</span>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Cycle</th>
+                            <th>Device</th>
+                            <th>Algorithm</th>
+                            <th>Grant time</th>
+                        </tr>
+                        </thead>
+                        <tbody id="history">
+                        <tr><td colspan="4">Loading grant history...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel" id="algorithms-section">
+                <div class="panel-heading">
+                    <div>
+                        <h2 class="panel-title">Arbitration algorithms</h2>
+                        <p class="panel-description">
+                            Compare the methods available in this simulator.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="comparison-grid">
+                    <article class="comparison-card">
+                        <span class="tag">Simple</span>
+                        <h3>FIFO</h3>
+                        <p>
+                            Requests are served in arrival order. It is easy to understand and
+                            prevents later requests from jumping ahead of earlier ones.
+                        </p>
+                    </article>
+
+                    <article class="comparison-card">
+                        <span class="tag">Priority based</span>
+                        <h3>Priority arbitration</h3>
+                        <p>
+                            The device with the highest configured priority is selected first.
+                            Lower priority devices may wait if high priority requests keep arriving.
+                        </p>
+                    </article>
+
+                    <article class="comparison-card">
+                        <span class="tag">Fair rotation</span>
+                        <h3>Round Robin</h3>
+                        <p>
+                            The arbiter checks devices in a rotating order. This gives active
+                            requesters a turn and helps share the bus fairly.
+                        </p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="panel" id="about-section">
+                <div class="panel-heading">
+                    <div>
+                        <h2 class="panel-title">About this project</h2>
+                        <p class="panel-description">Project overview and learning objectives.</p>
+                    </div>
+                </div>
+
+                <p class="section-intro">
+                    Bus arbitration is the process of selecting one bus master when two or
+                    more devices request control of a shared communication bus at the same
+                    time. This simulator demonstrates the idea using a queue and three
+                    common selection strategies.
+                </p>
+
+                <ul class="info-list">
+                    <li><span class="check">✓</span><span>Visualize how multiple devices compete for one shared bus.</span></li>
+                    <li><span class="check">✓</span><span>Compare FIFO, priority, and round-robin selection behavior.</span></li>
+                    <li><span class="check">✓</span><span>Review requests, current bus owner, and grant history.</span></li>
+                    <li><span class="check">✓</span><span>Connect a browser interface to Java REST API endpoints.</span></li>
+                </ul>
+            </section>
+        </div>
+
+        <div>
+            <section class="panel">
+                <div class="panel-heading">
+                    <div>
+                        <h2 class="panel-title">Waiting queue</h2>
+                        <p class="panel-description">
+                            Devices that have requested access and are waiting for a grant.
+                        </p>
+                    </div>
+                    <span class="tag" id="queueBadge">0 waiting</span>
+                </div>
+                <ol class="queue-list" id="queue"></ol>
+            </section>
+
+            <section class="panel" id="devices-section">
+                <div class="panel-heading">
+                    <div>
+                        <h2 class="panel-title">Device overview</h2>
+                        <p class="panel-description">
+                            Devices registered with the Java arbitration service.
+                        </p>
+                    </div>
+                </div>
+                <div id="devices"></div>
+                <p class="panel-description">
+                    Higher priority values are selected first when Priority mode is active.
+                </p>
+            </section>
+
+            <section class="panel">
+                <div class="panel-heading">
+                    <div>
+                        <h2 class="panel-title">How to use the simulator</h2>
+                        <p class="panel-description">Try a short arbitration experiment.</p>
+                    </div>
+                </div>
+
+                <ul class="info-list">
+                    <li><span class="check">01</span><span>Select an arbitration method above.</span></li>
+                    <li><span class="check">02</span><span>Click request buttons for two or more devices.</span></li>
+                    <li><span class="check">03</span><span>Check the waiting queue before granting access.</span></li>
+                    <li><span class="check">04</span><span>Click “Grant bus” and inspect the result and history.</span></li>
+                    <li><span class="check">05</span><span>Repeat with a different method to compare outcomes.</span></li>
+                </ul>
+            </section>
+
+            <section class="panel" id="faq-section">
+                <div class="panel-heading">
+                    <div>
+                        <h2 class="panel-title">Frequently asked questions</h2>
+                        <p class="panel-description">Quick notes about this demo.</p>
+                    </div>
+                </div>
+
+                <details class="faq-item">
+                    <summary>Why can only one device use the bus?</summary>
+                    <p>
+                        A shared bus has limited capacity. Arbitration prevents multiple
+                        devices from controlling it simultaneously.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What does the Reset button clear?</summary>
+                    <p>
+                        It clears the waiting queue, grant history, counters, and current
+                        bus owner in the running Java application.
+                    </p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Does this demo save data after restart?</summary>
+                    <p>
+                        The example backend stores its data in memory. Restarting the app
+                        clears the simulation state.
+                    </p>
+                </details>
+            </section>
+        </div>
+    </div>
+
+    <footer class="project-footer">
+        ArbiterLab · MCA Bus Arbitration Simulator · Built with Java Spring Boot
+    </footer>
+</main>
+
+<script>
+    const deviceIcons = {
+        CPU: "🧠",
+        DMA: "⚡",
+        Disk: "💾",
+        Network: "🌐"
+    };
+
+    let refreshTimer;
+
+    async function api(path, options = {}) {
+        const response = await fetch(path, {
+            headers: { "Content-Type": "application/json" },
+            ...options
+        });
+
+        const contentType = response.headers.get("content-type") || "";
+        const data = contentType.includes("application/json")
+            ? await response.json()
+            : { message: await response.text() };
+
+        if (!response.ok) {
+            throw new Error(data.message || "Request failed.");
+        }
+
+        return data;
+    }
+
+    function showMessage(message, isError = false) {
+        const element = document.getElementById("message");
+        element.textContent = message;
+        element.classList.toggle("error", isError);
+    }
+
+    function setServerStatus(isOnline) {
+        const badge = document.getElementById("serverStatus");
+        const text = document.getElementById("serverStatusText");
+
+        badge.classList.toggle("offline", !isOnline);
+        text.textContent = isOnline ? "Java server connected" : "Java server unavailable";
+    }
+
+    function makeEmptyRow(message) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 4;
+        cell.className = "empty-state";
+        cell.textContent = message;
+        row.appendChild(cell);
+        return row;
+    }
+
+    function renderDevices(devices) {
+        const buttons = document.getElementById("deviceButtons");
+        const overview = document.getElementById("devices");
+
+        buttons.replaceChildren();
+        overview.replaceChildren();
+
+        devices.forEach(device => {
+            const iconText = deviceIcons[device.name] || "🖥️";
+
+            const button = document.createElement("button");
+            button.className = "button device-button";
+            button.type = "button";
+
+            const icon = document.createElement("span");
+            icon.className = "device-button-icon";
+            icon.textContent = iconText;
+
+            const buttonInfo = document.createElement("span");
+            buttonInfo.className = "device-button-name";
+            buttonInfo.textContent = device.name;
+
+            const buttonPriority = document.createElement("span");
+            buttonPriority.className = "device-button-priority";
+            buttonPriority.textContent = `Priority ${device.priority}`;
+
+            buttonInfo.appendChild(buttonPriority);
+            button.append(icon, buttonInfo);
+            button.addEventListener("click", () => requestBus(device.name));
+            buttons.appendChild(button);
+
+            const row = document.createElement("div");
+            row.className = "device-row";
+
+            const name = document.createElement("span");
+            name.className = "device-name";
+            name.textContent = `${iconText} ${device.name}`;
+
+            const track = document.createElement("span");
+            track.className = "priority-track";
+
+            const fill = document.createElement("span");
+            fill.className = "priority-fill";
+            fill.style.display = "block";
+            fill.style.width = `${Math.min((device.priority / 3) * 100, 100)}%`;
+            track.appendChild(fill);
+
+            const priority = document.createElement("span");
+            priority.className = "priority-value";
+            priority.textContent = `Priority ${device.priority}`;
+
+            row.append(name, track, priority);
+            overview.appendChild(row);
+        });
+    }
+
+    function renderQueue(requests) {
+        const queue = document.getElementById("queue");
+        queue.replaceChildren();
+
+        document.getElementById("waitingCount").textContent = requests.length;
+        document.getElementById("queueBadge").textContent =
+            `${requests.length} waiting`;
+
+        if (requests.length === 0) {
+            const empty = document.createElement("li");
+            empty.className = "empty-state";
+            empty.textContent = "No pending requests. Click a device button to add one.";
+            queue.appendChild(empty);
+            return;
+        }
+
+        requests.forEach((request, index) => {
+            const item = document.createElement("li");
+            item.className = "queue-item";
+
+            const number = document.createElement("span");
+            number.className = "queue-number";
+            number.textContent = String(index + 1).padStart(2, "0");
+
+            const info = document.createElement("span");
+
+            const name = document.createElement("span");
+            name.className = "queue-device";
+            name.textContent = request.device;
+
+            const time = document.createElement("span");
+            time.className = "queue-time";
+            time.textContent = `Requested at ${request.requestedAt}`;
+
+            info.append(name, time);
+            item.append(number, info);
+            queue.appendChild(item);
+        });
+    }
+
+    function renderHistory(records) {
+        const body = document.getElementById("history");
+        body.replaceChildren();
+
+        document.getElementById("historyCount").textContent =
+            `${records.length} grant${records.length === 1 ? "" : "s"} recorded`;
+
+        if (records.length === 0) {
+            body.appendChild(makeEmptyRow(
+                "No grants yet. Submit a device request and grant bus access."
+            ));
+            return;
+        }
+
+        [...records].reverse().forEach(record => {
+            const row = document.createElement("tr");
+
+            const cycle = document.createElement("td");
+            cycle.textContent = record.cycle;
+
+            const device = document.createElement("td");
+            device.textContent = record.device;
+
+            const modeCell = document.createElement("td");
+            const modeTag = document.createElement("span");
+            modeTag.className = "tag";
+            modeTag.textContent = record.mode;
+            modeCell.appendChild(modeTag);
+
+            const time = document.createElement("td");
+            time.textContent = record.grantedAt;
+
+            row.append(cycle, device, modeCell, time);
+            body.appendChild(row);
+        });
+    }
+
+    async function loadStatus() {
+        try {
+            const data = await api("/api/status");
+
+            setServerStatus(true);
+
+            document.getElementById("owner").textContent = data.busOwner;
+            document.getElementById("requestsCount").textContent = data.totalRequests;
+            document.getElementById("grantsCount").textContent = data.totalGrants;
+            document.getElementById("mode").value = data.mode;
+            document.getElementById("currentModeTag").textContent = data.mode;
+
+            renderDevices(data.devices || []);
+            renderQueue(data.waitingRequests || []);
+            renderHistory(data.history || []);
+        } catch (error) {
+            setServerStatus(false);
+            showMessage(
+                "Can't load simulator data. Check that the Spring Boot app is running. " + error.message,
+                true
+            );
+        }
+    }
+
+    async function requestBus(device) {
+        try {
+            const result = await api(
+                `/api/request/${encodeURIComponent(device)}`,
+                { method: "POST" }
+            );
+            showMessage(result.message);
+            await loadStatus();
+        } catch (error) {
+            showMessage(error.message, true);
+        }
+    }
+
+    async function grantBus() {
+        try {
+            const result = await api("/api/grant", { method: "POST" });
+            showMessage(result.message);
+            await loadStatus();
+        } catch (error) {
+            showMessage(error.message, true);
+        }
+    }
+
+    async function changeMode() {
+        try {
+            const mode = document.getElementById("mode").value;
+            const result = await api("/api/mode", {
+                method: "POST",
+                body: JSON.stringify({ mode })
+            });
+            showMessage(result.message);
+            await loadStatus();
+        } catch (error) {
+            showMessage(error.message, true);
+        }
+    }
+
+    async function resetSimulator() {
+        try {
+            const result = await api("/api/reset", { method: "POST" });
+            showMessage(result.message);
+            await loadStatus();
+        } catch (error) {
+            showMessage(error.message, true);
+        }
+    }
+
+    // Highlight the sidebar link for the section currently in view.
+    const observedSections = document.querySelectorAll(
+        "#simulator, #history-section, #devices-section, #algorithms-section, #about-section, #faq-section"
+    );
+
+    const navigationLinks = document.querySelectorAll(".nav-item");
+
+    const sectionObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+
+            navigationLinks.forEach(link => {
+                link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === `#${entry.target.id}`
+                );
+            });
+        });
+    }, { rootMargin: "-15% 0px -65% 0px" });
+
+    observedSections.forEach(section => sectionObserver.observe(section));
+
+    loadStatus();
+
+    refreshTimer = setInterval(loadStatus, 5000);
+
+    window.addEventListener("beforeunload", () => {
+        if (refreshTimer) clearInterval(refreshTimer);
+    });
+</script>
+</body>
+</html>

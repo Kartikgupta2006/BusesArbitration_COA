@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Arbitration</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #172033;
+            background: #f3f6fb;
+        }
+
+        header {
+            padding: 48px 20px;
+            text-align: center;
+            color: white;
+            background: #173b70;
+        }
+
+        header h1 {
+            margin: 0 0 10px;
+            font-size: 2.5rem;
+        }
+
+        header p {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        main {
+            width: min(1000px, 92%);
+            margin: 30px auto;
+        }
+
+        section {
+            margin-bottom: 24px;
+            padding: 24px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 3px 12px #17203312;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #173b70;
+        }
+
+        .methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .method {
+            padding: 18px;
+            border: 1px solid #dce4f0;
+            border-radius: 10px;
+        }
+
+        .method h3 {
+            margin-top: 0;
+            color: #245da0;
+        }
+
+        .bus-diagram {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 20px 0 8px;
+        }
+
+        .device, .bus {
+            padding: 12px 16px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .device {
+            background: #e5efff;
+        }
+
+        .bus {
+            color: white;
+            background: #245da0;
+        }
+
+        .arrow {
+            color: #245da0;
+            font-size: 1.4rem;
+        }
+
+        footer {
+            padding: 20px;
+            text-align: center;
+            color: #526078;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Bus Arbitration</h1>
+        <p>How computer components take turns using a shared bus</p>
+    </header>
+
+    <main>
+        <section>
+            <h2>What is bus arbitration?</h2>
+            <p>
+                A computer bus is a shared communication path that connects components
+                such as the processor, memory, and input/output devices. If more than
+                one component requests the bus at the same time, bus arbitration
+                decides which one may use it first.
+            </p>
+        </section>
+
+        <section>
+            <h2>How it works</h2>
+            <p>
+                Devices send requests to an arbiter. The arbiter selects one requester
+                and grants it control of the bus. After the transfer finishes, another
+                device can be selected.
+            </p>
+
+            <div class="bus-diagram" aria-label="Devices request access through an arbiter">
+                <div class="device">CPU</div>
+                <div class="device">Device 1</div>
+                <div class="device">Device 2</div>
+                <span class="arrow" aria-hidden="true">→</span>
+                <div class="bus">Arbiter → Shared Bus</div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Common arbitration methods</h2>
+            <div class="methods">
+                <article class="method">
+                    <h3>Daisy-chain</h3>
+                    <p>
+                        A grant signal passes from one device to the next. The first
+                        requesting device in the chain gets the bus. It is simple and
+                        inexpensive, but devices later in the chain may wait longer.
+                    </p>
+                </article>
+
+                <article class="method">
+                    <h3>Centralized parallel</h3>
+                    <p>
+                        Devices send request signals to a central arbiter, which chooses
+                        a requester and sends back a grant. It can be fast, but needs
+                        more hardware and a central control point.
+                    </p>
+                </article>
+
+                <article class="method">
+                    <h3>Distributed</h3>
+                    <p>
+                        Devices cooperate to decide who gets the bus instead of relying
+                        on one central arbiter. It can avoid a single control point,
+                        but is more complex to design.
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <section>
+            <h2>Why is arbitration important?</h2>
+            <ul>
+                <li>Prevents two devices from controlling the bus at once.</li>
+                <li>Organizes requests from multiple components.</li>
+                <li>Helps computer systems transfer data reliably.</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        Student project: Computer Organization and Architecture
+    </footer>
+</body>
+</html>
