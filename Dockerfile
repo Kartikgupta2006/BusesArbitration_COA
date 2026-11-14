@@ -1,9 +1,8 @@
-
-FROM gradle:8.10-jdk17 AS build
+FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
 
 COPY . .
-RUN gradle build --no-daemon
+RUN chmod +x gradlew && ./gradlew build --no-daemon
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
